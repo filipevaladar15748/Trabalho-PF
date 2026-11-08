@@ -5,6 +5,7 @@ import System.IO (hSetEncoding, stdout, utf8)
 import DadosExemplo
 import Model
 import Schedule
+import Standings
 
 titulo :: String -> IO ()
 titulo t = do
@@ -34,6 +35,13 @@ textoRegisto :: Maybe [Partida r] -> String
 textoRegisto Nothing = "recusado"
 textoRegisto (Just ps) = "aceite (" ++ show (contarJogadas ps) ++ " jogadas)"
 
+linhaClassificacao :: Classificacao -> String
+linhaClassificacao c =
+  pNome (participante c) ++ ": " ++ show (pontos c) ++ " pts, "
+    ++ show (jogos c) ++ "J " ++ show (vitorias c) ++ "V "
+    ++ show (empates c) ++ "E " ++ show (derrotas c) ++ "D, dif "
+    ++ show (diferenca c)
+
 main :: IO ()
 main = do
   hSetEncoding stdout utf8
@@ -53,3 +61,12 @@ main = do
   putStrLn ("Bruno vs Diogo, empate: " ++ textoRegisto (registarResultado 2 4 Empate partidasExemplo))
   putStrLn ("Ana vs Bruno outra vez: " ++ textoRegisto (registarResultado 1 2 VenceFora partidasExemplo))
   putStrLn ("Bruno vs Diogo, 1-2: " ++ textoRegisto (registarResultado 2 4 (Golos 1 2) partidasGolos))
+
+  titulo "Classificacao com 3 pontos por vitoria"
+  mapM_ (putStrLn . linhaClassificacao) (tabela regrasPadrao participantesExemplo partidasExemplo)
+
+  titulo "Classificacao com 2 pontos por vitoria"
+  mapM_ (putStrLn . linhaClassificacao) (tabela regrasAlternativas participantesExemplo partidasExemplo)
+
+  titulo "Classificacao com golos"
+  mapM_ (putStrLn . linhaClassificacao) (tabela regrasGolos participantesExemplo partidasGolos)

@@ -20,6 +20,26 @@ data Partida r = Partida
   , resultado :: Maybe r
   } deriving (Eq, Show)
 
+data Classificacao = Classificacao
+  { participante :: Participante
+  , pontos :: Int
+  , jogos :: Int
+  , vitorias :: Int
+  , empates :: Int
+  , derrotas :: Int
+  , diferenca :: Int
+  } deriving (Eq, Show)
+
+-- O que é específico de cada jogo.
+--   pontuar:   pontos (casa, fora) que um resultado dá
+--   saldo:     diferença do ponto de vista da casa (> 0 ganhou, < 0 perdeu, 0 empate)
+--   desempate: ordem entre duas linhas da classificação
+data Regras r = Regras
+  { pontuar :: r -> (Int, Int)
+  , saldo :: r -> Int
+  , desempate :: Classificacao -> Classificacao -> Ordering
+  }
+
 data Torneio r = Torneio
   { participantes :: [Participante]
   , partidas :: [Partida r]

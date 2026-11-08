@@ -5,6 +5,7 @@ import System.Exit (exitFailure, exitSuccess)
 import DadosExemplo
 import Model
 import Schedule
+import Standings
 
 type Teste = (String, Bool)
 
@@ -15,6 +16,7 @@ semAutoconfronto ((a, b) : ps) = pId a /= pId b && semAutoconfronto ps
 nomes :: [Partida r] -> [(String, String)]
 nomes [] = []
 nomes (p : ps) = (pNome (casa p), pNome (fora p)) : nomes ps
+
 
 testesParticipantes :: [Teste]
 testesParticipantes =
@@ -65,8 +67,54 @@ testesPartidas =
   , ("novoTorneio com 6 por jogar", contarPorJogar (partidas (novoTorneio participantesExemplo :: Torneio Resultado)) == 6)
   ]
 
+nomesTabela :: [Classificacao] -> [String]
+nomesTabela [] = []
+nomesTabela (c : cs) = pNome (participante c) : nomesTabela cs
+
+linha :: Participante -> Int -> Int -> Classificacao
+linha p pts dif = Classificacao p pts 0 0 0 0 dif
+
+testesPontuacao :: [Teste]
+testesPontuacao =
+  [ ("pontosVVE vence a casa", pontosVVE 3 1 VenceCasa == (3, 0))
+  , ("pontosVVE vence o de fora", pontosVVE 3 1 VenceFora == (0, 3))
+  , ("pontosVVE empate", pontosVVE 3 1 Empate == (1, 1))
+  , ("pontosVVE outras regras", pontosVVE 2 1 VenceCasa == (2, 0))
+  , ("saldoVVE vence a casa", saldoVVE VenceCasa == 1)
+  , ("saldoVVE vence o de fora", saldoVVE VenceFora == -1)
+  , ("saldoVVE empate", saldoVVE Empate == 0)
+  , ("pontosGolos vence a casa", pontosGolos 3 1 (Golos 2 1) == (3, 0))
+  , ("pontosGolos vence o de fora", pontosGolos 3 1 (Golos 0 4) == (0, 3))
+  , ("pontosGolos empate", pontosGolos 3 1 (Golos 2 2) == (1, 1))
+  , ("saldoGolos", saldoGolos (Golos 1 4) == -3)
+  ]
+
+testesClassificacao :: [Teste]
+testesClassificacao =
+  [ ("classificacaoDe Ana", classificacaoDe regrasPadrao ana partidasExemplo == Classificacao ana 4 3 1 1 1 0)
+  , ("classificacaoDe Bruno", classificacaoDe regrasPadrao bruno partidasExemplo == Classificacao bruno 1 2 0 1 1 (-1))
+  , ("classificacaoDe Carla", classificacaoDe regrasPadrao carla partidasExemplo == Classificacao carla 2 2 0 2 0 0)
+  , ("classificacaoDe Diogo", classificacaoDe regrasPadrao diogo partidasExemplo == Classificacao diogo 3 1 1 0 0 1)
+  , ("classificacaoDe sem jogos", classificacaoDe regrasPadrao (Participante 9 "Zé") partidasExemplo == classificacaoVazia (Participante 9 "Zé"))
+  , ("classificacaoDe lista vazia", classificacaoDe regrasPadrao ana [] == classificacaoVazia ana)
+  , ("classificacaoDe outras regras", pontos (classificacaoDe regrasAlternativas ana partidasExemplo) == 3)
+  , ("classificacaoDe golos Ana", classificacaoDe regrasGolos ana partidasGolos == Classificacao ana 4 3 1 1 1 (-1))
+  , ("classificacaoDe golos Diogo", classificacaoDe regrasGolos diogo partidasGolos == Classificacao diogo 3 1 1 0 0 3)
+  , ("desempate mais pontos primeiro", desempatePadrao (linha ana 5 0) (linha bruno 3 9) == LT)
+  , ("desempate pela diferenca", desempatePadrao (linha ana 3 1) (linha bruno 3 2) == GT)
+  , ("desempate pelo nome", desempatePadrao (linha ana 3 1) (linha bruno 3 1) == LT)
+  , ("ordenar inteiros", ordenar compare [3, 1, 2 :: Int] == [1, 2, 3])
+  , ("ordenar lista vazia", null (ordenar compare ([] :: [Int])))
+  , ("tabela 3 pontos", nomesTabela (tabela regrasPadrao participantesExemplo partidasExemplo) == ["Ana", "Diogo", "Carla", "Bruno"])
+  , ("tabela 2 pontos desempata Diogo e Carla", nomesTabela (tabela regrasAlternativas participantesExemplo partidasExemplo) == ["Ana", "Diogo", "Carla", "Bruno"])
+  , ("tabela golos", nomesTabela (tabela regrasGolos participantesExemplo partidasGolos) == ["Ana", "Diogo", "Carla", "Bruno"])
+  , ("tabela tem todos", length (tabela regrasPadrao participantesExemplo partidasExemplo) == 4)
+  , ("tabela sem participantes", null (tabela regrasPadrao [] partidasExemplo))
+  ]
+
 testes :: [Teste]
 testes = testesParticipantes ++ testesCalendario ++ testesPartidas
+  ++ testesPontuacao ++ testesClassificacao
 
 main :: IO ()
 main = do

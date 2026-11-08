@@ -4,9 +4,11 @@ Trabalho prático de Programação Funcional.
 
 ## Equipa
 
-| Afonso Fontinha
-| Filipe Valadar
-| Luís Esteves
+| Nome | Número |
+|------|--------|
+| _Membro 1_ | _a00000_ |
+| _Membro 2_ | _a00000_ |
+| _Membro 3_ | _a00000_ |
 
 ## Descrição
 
@@ -14,7 +16,10 @@ Gestão de torneios de qualquer jogo. O que é comum a todos os torneios
 (participantes, partidas, calendário, classificação, eliminatórias) está
 separado do que é específico de cada jogo (pontuação e desempate).
 
-Uma partida é do tipo `Partida r`, onde `r` é o tipo de resultado do jogo.
+Uma partida é do tipo `Partida r`, onde `r` é o tipo de resultado do jogo. As
+regras de um jogo são um valor `Regras r` com três funções: os pontos que cada
+resultado dá, o saldo do resultado (quem ganhou e por quanto) e o critério de
+desempate. Para mudar de jogo basta mudar as regras.
 
 Há dois tipos de resultado de exemplo:
 
@@ -23,12 +28,15 @@ Há dois tipos de resultado de exemplo:
 
 ## Funcionalidades da Fase 1
 
-- Modelo genérico: `Partida r` para qualquer tipo de resultado, `Torneio r`.
+- Modelo genérico: `Partida r`, `Regras r`, `Classificacao`, `Torneio r`.
 - Pesquisa de participantes e validação de identificadores repetidos.
 - Calendário todos contra todos.
 - Criação de um torneio com todas as partidas por jogar.
 - Registo de resultados (recusa partidas inexistentes ou já jogadas).
 - Contagem de partidas jogadas e por jogar.
+- Pontuação por pattern matching para os dois tipos de resultado.
+- Classificação de cada participante (pontos, jogos, vitórias, empates,
+  derrotas, diferença) e tabela ordenada pelo critério de desempate.
 
 ## Estrutura
 
@@ -40,6 +48,7 @@ Há dois tipos de resultado de exemplo:
 ├── src/
 │   ├── Model.hs
 │   ├── Schedule.hs
+│   ├── Standings.hs
 │   └── DadosExemplo.hs
 ├── app/
 │   └── Main.hs
@@ -51,6 +60,7 @@ Há dois tipos de resultado de exemplo:
 
 - `Model.hs`: tipos do domínio.
 - `Schedule.hs`: participantes, calendário, partidas e criação de torneios.
+- `Standings.hs`: pontuação, classificação e desempate.
 - `DadosExemplo.hs`: dados de demonstração para os dois tipos de resultado.
 - `Main.hs`: demonstração, único módulo com IO.
 

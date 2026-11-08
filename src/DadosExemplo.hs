@@ -1,6 +1,7 @@
 module DadosExemplo where
 
 import Model
+import Standings
 
 ana, bruno, carla, diogo :: Participante
 ana = Participante 1 "Ana"
@@ -31,3 +32,12 @@ partidasGolos =
   , Partida bruno diogo Nothing
   , Partida carla diogo Nothing
   ]
+
+regrasPadrao :: Regras Resultado
+regrasPadrao = Regras (pontosVVE 3 1) saldoVVE desempatePadrao
+
+regrasAlternativas :: Regras Resultado
+regrasAlternativas = Regras (pontosVVE 2 1) saldoVVE desempatePadrao
+
+regrasGolos :: Regras Golos
+regrasGolos = Regras (pontosGolos 3 1) saldoGolos desempatePadrao
