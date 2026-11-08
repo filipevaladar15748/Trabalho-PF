@@ -42,6 +42,17 @@ linhaClassificacao c =
     ++ show (empates c) ++ "E " ++ show (derrotas c) ++ "D, dif "
     ++ show (diferenca c)
 
+descreverTorneio :: Maybe (Torneio r) -> String
+descreverTorneio Nothing = "recusado"
+descreverTorneio (Just t) =
+  show (formato t) ++ " com " ++ show (length (participantes t)) ++ " participantes e "
+    ++ show (contarPorJogar (partidas t)) ++ " partidas por jogar"
+
+desenharBracket :: Int -> Bracket -> [String]
+desenharBracket n (Folha p) = [replicate (2 * n) ' ' ++ pNome p]
+desenharBracket n (Jogo e d) =
+  (replicate (2 * n) ' ' ++ "jogo") : desenharBracket (n + 1) e ++ desenharBracket (n + 1) d
+
 main :: IO ()
 main = do
   hSetEncoding stdout utf8
@@ -70,3 +81,16 @@ main = do
 
   titulo "Classificacao com golos"
   mapM_ (putStrLn . linhaClassificacao) (tabela regrasGolos participantesExemplo partidasGolos)
+
+  titulo "Criacao de torneios"
+  putStrLn ("Liga com 4: " ++ descreverTorneio (novoTorneio Liga regrasPadrao participantesExemplo))
+  putStrLn ("Liga com id repetido: " ++ descreverTorneio (novoTorneio Liga regrasPadrao [ana, bruno, Participante 1 "Outra"]))
+  putStrLn ("Eliminatorias com 4: " ++ descreverTorneio (novoTorneio Eliminatorias regrasGolos participantesExemplo))
+  putStrLn ("Eliminatorias com 3: " ++ descreverTorneio (novoTorneio Eliminatorias regrasGolos [ana, bruno, carla]))
+
+  titulo "Arvore de eliminatorias"
+  case construirBracket participantesExemplo of
+    Nothing -> putStrLn "Sem participantes"
+    Just b -> do
+      mapM_ putStrLn (desenharBracket 0 b)
+      putStrLn ("Jogos: " ++ show (jogosBracket b) ++ ", rondas: " ++ show (rondasBracket b))

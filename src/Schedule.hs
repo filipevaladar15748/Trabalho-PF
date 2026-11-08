@@ -78,5 +78,57 @@ registarResultado a b r (p : ps)
 
 -- Torneio
 
-novoTorneio :: [Participante] -> Torneio r
-novoTorneio ps = Torneio ps (criarPartidas (todosContraTodos ps))
+potenciaDeDois :: Int -> Bool
+potenciaDeDois 1 = True
+potenciaDeDois n
+  | n < 1 = False
+  | even n = potenciaDeDois (n `div` 2)
+  | otherwise = False
+
+numeroValido :: Formato -> Int -> Bool
+numeroValido Liga n = n >= 2
+numeroValido Eliminatorias n = n >= 2 && potenciaDeDois n
+
+-- Primeira ronda das eliminatórias: o 1.º contra o 2.º, o 3.º contra o 4.º, ...
+emparelhar :: [Participante] -> [(Participante, Participante)]
+emparelhar (a : b : resto) = (a, b) : emparelhar resto
+emparelhar _ = []
+
+confrontosIniciais :: Formato -> [Participante] -> [(Participante, Participante)]
+confrontosIniciais Liga ps = todosContraTodos ps
+confrontosIniciais Eliminatorias ps = emparelhar ps
+
+-- Recusa número inválido de participantes e identificadores repetidos.
+novoTorneio :: Formato -> Regras r -> [Participante] -> Maybe (Torneio r)
+novoTorneio f rs ps
+  | not (numeroValido f (length ps)) = Nothing
+  | not (idsDistintos ps) = Nothing
+  | otherwise = Just (Torneio ps (criarPartidas (confrontosIniciais f ps)) f rs)
+
+registarNoTorneio :: Int -> Int -> r -> Torneio r -> Maybe (Torneio r)
+registarNoTorneio a b r t = case registarResultado a b r (partidas t) of
+  Nothing -> Nothing
+  Just novas -> Just (t { partidas = novas })
+
+-- Eliminatórias
+
+construirBracket :: [Participante] -> Maybe Bracket
+construirBracket [] = Nothing
+construirBracket [p] = Just (Folha p)
+construirBracket ps = case (construirBracket esq, construirBracket dir) of
+  (Just e, Just d) -> Just (Jogo e d)
+  _ -> Nothing
+  where
+    (esq, dir) = splitAt (length ps `div` 2) ps
+
+participantesBracket :: Bracket -> [Participante]
+participantesBracket (Folha p) = [p]
+participantesBracket (Jogo e d) = participantesBracket e ++ participantesBracket d
+
+jogosBracket :: Bracket -> Int
+jogosBracket (Folha _) = 0
+jogosBracket (Jogo e d) = 1 + jogosBracket e + jogosBracket d
+
+rondasBracket :: Bracket -> Int
+rondasBracket (Folha _) = 0
+rondasBracket (Jogo e d) = 1 + max (rondasBracket e) (rondasBracket d)

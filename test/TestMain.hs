@@ -17,6 +17,9 @@ nomes :: [Partida r] -> [(String, String)]
 nomes [] = []
 nomes (p : ps) = (pNome (casa p), pNome (fora p)) : nomes ps
 
+recusado :: Maybe a -> Bool
+recusado Nothing = True
+recusado (Just _) = False
 
 testesParticipantes :: [Teste]
 testesParticipantes =
@@ -63,8 +66,6 @@ testesPartidas =
   , ("registarResultado preserva ordem", fmap nomes (registarResultado 2 4 Empate partidasExemplo) == Just (nomes partidasExemplo))
   , ("registarResultado com golos", fmap contarJogadas (registarResultado 3 4 (Golos 1 0) partidasGolos) == Just 5)
   , ("registarResultado com golos ja jogada", registarResultado 1 2 (Golos 0 1) partidasGolos == Nothing)
-  , ("novoTorneio sem partidas jogadas", contarJogadas (partidas (novoTorneio participantesExemplo :: Torneio Resultado)) == 0)
-  , ("novoTorneio com 6 por jogar", contarPorJogar (partidas (novoTorneio participantesExemplo :: Torneio Resultado)) == 6)
   ]
 
 nomesTabela :: [Classificacao] -> [String]
@@ -112,9 +113,39 @@ testesClassificacao =
   , ("tabela sem participantes", null (tabela regrasPadrao [] partidasExemplo))
   ]
 
+oito :: [Participante]
+oito = [Participante i ("P" ++ show i) | i <- [1 .. 8]]
+
+testesTorneio :: [Teste]
+testesTorneio =
+  [ ("potenciaDeDois 1, 2, 4 e 8", potenciaDeDois 1 && potenciaDeDois 2 && potenciaDeDois 4 && potenciaDeDois 8)
+  , ("potenciaDeDois 0, 3 e 6", not (potenciaDeDois 0 || potenciaDeDois 3 || potenciaDeDois 6))
+  , ("emparelhar 4", length (emparelhar participantesExemplo) == 2)
+  , ("emparelhar 3 deixa um de fora", length (emparelhar [ana, bruno, carla]) == 1)
+  , ("emparelhar vazio", null (emparelhar []))
+  , ("liga criada", fmap formato (novoTorneio Liga regrasPadrao participantesExemplo) == Just Liga)
+  , ("liga com 6 por jogar", fmap (contarPorJogar . partidas) (novoTorneio Liga regrasPadrao participantesExemplo) == Just 6)
+  , ("liga sem jogadas", fmap (contarJogadas . partidas) (novoTorneio Liga regrasPadrao participantesExemplo) == Just 0)
+  , ("liga com id repetido", recusado (novoTorneio Liga regrasPadrao [ana, bruno, Participante 1 "Outra"]))
+  , ("liga com 1 participante", recusado (novoTorneio Liga regrasPadrao [ana]))
+  , ("liga sem participantes", recusado (novoTorneio Liga regrasPadrao []))
+  , ("eliminatorias com 4 tem 2 partidas", fmap (length . partidas) (novoTorneio Eliminatorias regrasGolos participantesExemplo) == Just 2)
+  , ("eliminatorias com 3", recusado (novoTorneio Eliminatorias regrasGolos [ana, bruno, carla]))
+  , ("registarNoTorneio valido", fmap (contarJogadas . partidas) (novoTorneio Liga regrasPadrao participantesExemplo >>= registarNoTorneio 1 2 VenceCasa) == Just 1)
+  , ("registarNoTorneio inexistente", recusado (novoTorneio Liga regrasPadrao participantesExemplo >>= registarNoTorneio 1 9 VenceCasa))
+  , ("construirBracket vazio", construirBracket [] == Nothing)
+  , ("construirBracket 1", construirBracket [ana] == Just (Folha ana))
+  , ("construirBracket 4", construirBracket participantesExemplo == Just (Jogo (Jogo (Folha ana) (Folha bruno)) (Jogo (Folha carla) (Folha diogo))))
+  , ("participantesBracket preserva ordem", fmap participantesBracket (construirBracket participantesExemplo) == Just participantesExemplo)
+  , ("jogosBracket 4", fmap jogosBracket (construirBracket participantesExemplo) == Just 3)
+  , ("rondasBracket 4", fmap rondasBracket (construirBracket participantesExemplo) == Just 2)
+  , ("rondasBracket 8", fmap rondasBracket (construirBracket oito) == Just 3)
+  , ("jogosBracket 8", fmap jogosBracket (construirBracket oito) == Just 7)
+  ]
+
 testes :: [Teste]
 testes = testesParticipantes ++ testesCalendario ++ testesPartidas
-  ++ testesPontuacao ++ testesClassificacao
+  ++ testesPontuacao ++ testesClassificacao ++ testesTorneio
 
 main :: IO ()
 main = do

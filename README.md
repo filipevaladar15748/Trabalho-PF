@@ -28,15 +28,16 @@ Há dois tipos de resultado de exemplo:
 
 ## Funcionalidades da Fase 1
 
-- Modelo genérico: `Partida r`, `Regras r`, `Classificacao`, `Torneio r`.
+- Modelo genérico: `Partida r`, `Regras r`, `Classificacao`, `Bracket`, `Torneio r`.
 - Pesquisa de participantes e validação de identificadores repetidos.
 - Calendário todos contra todos.
-- Criação de um torneio com todas as partidas por jogar.
 - Registo de resultados (recusa partidas inexistentes ou já jogadas).
 - Contagem de partidas jogadas e por jogar.
 - Pontuação por pattern matching para os dois tipos de resultado.
 - Classificação de cada participante (pontos, jogos, vitórias, empates,
   derrotas, diferença) e tabela ordenada pelo critério de desempate.
+- Criação validada de torneios em liga ou eliminatórias.
+- Árvore de eliminatórias construída recursivamente.
 
 ## Estrutura
 
@@ -59,7 +60,7 @@ Há dois tipos de resultado de exemplo:
 ```
 
 - `Model.hs`: tipos do domínio.
-- `Schedule.hs`: participantes, calendário, partidas e criação de torneios.
+- `Schedule.hs`: participantes, calendário, partidas, criação de torneios e eliminatórias.
 - `Standings.hs`: pontuação, classificação e desempate.
 - `DadosExemplo.hs`: dados de demonstração para os dois tipos de resultado.
 - `Main.hs`: demonstração, único módulo com IO.
@@ -96,4 +97,4 @@ cabal test
 
 - Fase 2: classificação com folds, desempates compostos, estatísticas com
   map/filter/fold, erros com `Either`.
-- Fase 3: leitura de CSV, eliminatórias, menu textual e relatórios.
+- Fase 3: leitura de CSV, eliminatórias completas, menu textual e relatórios.

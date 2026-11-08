@@ -40,7 +40,18 @@ data Regras r = Regras
   , desempate :: Classificacao -> Classificacao -> Ordering
   }
 
+data Formato = Liga | Eliminatorias
+  deriving (Eq, Show)
+
+-- Árvore de eliminatórias: cada jogo junta o vencedor de duas sub-árvores.
+data Bracket
+  = Folha Participante
+  | Jogo Bracket Bracket
+  deriving (Eq, Show)
+
 data Torneio r = Torneio
   { participantes :: [Participante]
   , partidas :: [Partida r]
-  } deriving (Eq, Show)
+  , formato :: Formato
+  , regras :: Regras r
+  }
